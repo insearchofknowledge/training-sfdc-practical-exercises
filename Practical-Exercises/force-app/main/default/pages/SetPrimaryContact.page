@@ -1,0 +1,75 @@
+<apex:page standardController="Account" extensions="AccountControllerExtension">
+    <apex:form >
+     <!--Account Details-->   
+	<apex:pageBlock title="Account Primary Contact">
+    	<apex:pageBlockSection columns="2">
+           	<apex:inputField value="{! Account.Name}"/>
+        	<apex:inputField value="{! Account.AccountNumber}"/>
+            <apex:inputField value="{! Account.Type}"/>
+            <apex:inputField value="{! Account.Active__c}"/>
+            <apex:inputField value="{! Account.Phone}"/>
+            <apex:inputField value="{! Account.Fax}"/>
+    	</apex:pageBlockSection>
+        <apex:pageBlockButtons >
+        	<apex:commandButton action="{!save}" value="Save"/>
+            <apex:commandButton action="{!cancel}" value="Cancel"/>
+        </apex:pageBlockButtons>
+    </apex:pageBlock>
+    
+    <!--Search related contacts by Name-->
+    <apex:pageBlock title="Search related contacts"> 
+        <apex:inputText size ="30" value="{!inputSearchName}"/>
+        <apex:commandButton value="Search" reRender="listOfRelatedContacts" action="{!resetPagination}"/>  
+    </apex:pageBlock>
+
+    <!--Related Contacts table-->
+    <apex:pageBlock title="Related Contacts" id="listOfRelatedContacts">
+		<apex:pageBlockTable value="{!RelatedContacts}" var="contact">
+            <apex:column value="{!contact.Name}"/>
+            <apex:column value="{!contact.Title}"/>
+            <apex:column value="{!contact.Phone}"/>
+            <apex:column value="{!contact.Is_Primary_Contact__c}"/>
+            
+            <!--If the Contact is a Primary Contact, then an icon should be displayed. Otherwise a link should be displayed that will allow the user to set the Contact as a primary contact.-->
+            <apex:column> 
+                <apex:commandLink value="Set As Primary" rendered="{! !contact.Is_Primary_Contact__c}" action="{!updateAsPrimaryContact}" reRender="listOfRelatedContacts" onclick="if(!confirm('Are you sure you want to set {!contact.Name} as the new primary contact?')){return false;}">
+                    <apex:param name="contactId" value="{!contact.Id}" assignTo="{!futurePrimaryContactId}"/>
+                </apex:commandLink>
+                <apex:image alt="primary-contact" title="Primary contact" rendered="{!contact.Is_Primary_Contact__c}"
+                            height="18" width="18" 
+                            url="{!URLFOR($Resource.icons, 'questions_and_answers_60.png')}"/> </apex:column>  
+        </apex:pageBlockTable> 
+        
+        <!--Pagination-->
+        <apex:pageBlock>
+
+            <!--Displaying the current page and the total number of pages-->
+            <apex:outputText>Page: {!pageNumber} of {!CEILING(numberOfRecords / tableSize)}</apex:outputText>  
+            
+            &nbsp;&nbsp;
+            
+            <!--First and Previous Page buttons-->
+            <apex:commandButton value="First Page" reRender="listOfRelatedContacts" action="{!firstPage}" disabled="{! !hasPrevious}"/>
+            <apex:commandButton value="<< Previous" reRender="listOfRelatedContacts" action="{!previous}" disabled="{! !hasPrevious}"/>
+            
+            &nbsp;&nbsp;
+            
+            <!--Next and Last Page button-->
+            <apex:commandButton value="Next >>" reRender="listOfRelatedContacts" action="{!next}" disabled="{! !hasNext}"/>
+            <apex:commandButton value="Last Page" reRender="listOfRelatedContacts" action="{!lastPage}" disabled="{! !hasNext}"/>
+            
+            &nbsp;&nbsp;
+            
+            <!--Adjust number of records per page-->
+            Records per page:
+            <apex:selectList value="{!tableSize}" size="1">
+                <apex:selectOption itemValue="5" itemLabel="5"/>
+                <apex:selectOption itemValue="20" itemLabel="20"/>
+                <apex:selectOption itemValue="50" itemLabel="50"/>
+                <apex:selectOption itemValue="100" itemLabel="100"/>
+                <apex:actionSupport event="onchange" action="{!resetPagination}" reRender="listOfRelatedContacts"/>    
+            </apex:selectList>
+        </apex:pageBlock>
+    </apex:pageBlock>
+</apex:form>
+</apex:page>
