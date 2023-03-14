@@ -5,6 +5,8 @@ public with sharing class AccountControllerExtension {
     public String inputSearchName{get; set;}
     public String contactName {get; set;}
     public String futurePrimaryContactId{get; set;}
+
+    List<Contact> oldPrimaryContacts;
     
     public Integer currentPosition = 0;
     public Integer tableSize {get; set;}
@@ -17,6 +19,7 @@ public with sharing class AccountControllerExtension {
         this.accId = account.Id;
         this.pageNumber = 1;
         this.tableSize = 5;
+        this.oldPrimaryContacts = new List<Contact>();
     }
  
     // For displaying contacts related to the selected Account
@@ -44,27 +47,29 @@ public with sharing class AccountControllerExtension {
 
     // For setting a new primary contact from related contacts list
     public void updateAsPrimaryContact(){
-        // We fetch the desired contact from the DB and we set the Is_Primary_Contact__c field = true
-        List<Contact> result = [SELECT Id, Name, Is_Primary_Contact__c
-                                              FROM Contact 
-                                              WHERE Id = :futurePrimaryContactId];
-        Contact futurePrimaryContact = result[0];
-        futurePrimaryContact.Is_Primary_Contact__c = true;
         
-        // We check if there are other primary contacts
-        result = [SELECT Id, Name, Is_Primary_Contact__c
-                  FROM Contact 
-                  WHERE Is_Primary_Contact__C = true];
+            // We fetch the selected contact from the DB and we set the Is_Primary_Contact__c field = true
+            List<Contact> result = [SELECT Id, Name, Is_Primary_Contact__c
+                                    FROM Contact 
+                                    WHERE Id = :futurePrimaryContactId];
+            Contact futurePrimaryContact = result[0];
+            futurePrimaryContact.Is_Primary_Contact__c = true;
         
-        // If there are we set the primary contact field to false (using a list helps us make sure no contact escapes from the update)
-        if (result.size() > 0 ){
-            for (Contact formerPrimaryContact : result){
-                formerPrimaryContact.Is_Primary_Contact__c = false;
+            // We check if there are other primary contacts
+            oldPrimaryContacts = [SELECT Id, Name, Is_Primary_Contact__c
+                                  FROM Contact 
+                                  WHERE AccountId = :accId AND Is_Primary_Contact__C = true];
+        
+            // If there are we set the primary contact field to false (using a list helps us make sure no contact escapes from the update)
+            if (oldPrimaryContacts.size() > 0){
+                for (Contact oldPrimaryContact : oldPrimaryContacts){
+                    oldPrimaryContact.Is_Primary_Contact__c = false;
+                }
+                // Updating old primary contact to secondary 
+                update oldPrimaryContacts;
             }
-        }
-        // Storing the changes in the DB
-        update result;
-        update futurePrimaryContact;
+            // Updating newly assigned primary contact
+            update futurePrimaryContact;
     }
 
     // Pagination
