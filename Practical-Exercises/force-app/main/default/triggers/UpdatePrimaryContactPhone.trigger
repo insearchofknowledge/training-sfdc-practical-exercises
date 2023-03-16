@@ -12,12 +12,6 @@ trigger UpdatePrimaryContactPhone on Contact (before insert, before update) {
                 triggeringContact = creatingNewPrimaryContact;
             }
         }
-        // Checking if the account already has a primary contact  
-        if (triggeringContact != null){
-        preExistingPrimaryContacts = [SELECT Id, Is_Primary_Contact__c, Primary_Contact_Phone__c, Phone FROM Contact 
-                                      WHERE AccountId = :triggeringContact.AccountId 
-                                      AND Is_Primary_Contact__c = true];
-        }
     }
 
     if (Trigger.isUpdate) {
@@ -34,9 +28,17 @@ trigger UpdatePrimaryContactPhone on Contact (before insert, before update) {
         triggeringContact.addError('Primary Contact must have a phone number');
     }
 
+    // Checking if the account already has a primary contact (in case the User tries to add a new Primary contact, or in case a contact is beig set as primary from Contact Details page) 
+    if (triggeringContact != null){
+        preExistingPrimaryContacts = [SELECT Id, Is_Primary_Contact__c, Primary_Contact_Phone__c, Phone FROM Contact 
+                                      WHERE AccountId = :triggeringContact.AccountId 
+                                      AND Is_Primary_Contact__c = true];}
+    
     // If the Account already has a Primary Contact we prevent the newly created Primary Contact from being added
+    // We should also prevent the User from trying to update a contact to Primary Contact from the contact detail page 
+    // because it bypasses the VF page with the custom controller created during exercise 1 which can result in multiple Primary Contacts 
     if (preExistingPrimaryContacts.size() > 0 ){
-        triggeringContact.addError('This account already has a Primary Contact.');
+        triggeringContact.addError('This account already has a Primary Contact. Please use \'Set Primary Contact\' page (found on Account page expanding the Actions list) if you are trying to replace the current Primary Contact with an existing Secondary Contact.');
     } 
     
     if (triggeringContact != null) {
