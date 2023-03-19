@@ -1,0 +1,28 @@
+<apex:page standardController="Account" extensions="AccountControllerExtensionForWeather" action="{!getWeather}">
+    <!--Displaying weather data for Account-->
+    <apex:pageBlock title='Weather in {! Account.BillingCity}:' rendered="{!IF(AND(hasAddress, isResponseSuccess), TRUE, FALSE)}">
+        <apex:pageBlockSection>
+            <!--Descriptionm-->
+            <apex:pageBlockSectionItem>
+                <apex:outputLabel value="Description"/>
+                <apex:outputText value="{! description}"/>
+            </apex:pageBlockSectionItem>
+            <!--Temperature (Kelvin)-->
+            <apex:pageBlockSectionItem>
+                <apex:outputLabel value="Temperature"/>
+                <apex:outputText value="{! temperature}"/>
+            </apex:pageBlockSectionItem>
+            <!--Weather condition icon-->
+            <apex:pageBlockSectionItem>
+                <apex:outputLabel value=""> <apex:image alt="weather condition" title="Weather Condition" url="{! weatherIcon}"/> </apex:outputLabel>
+                <apex:outputText value=""/>
+            </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+
+    <!--For displaying errors the user may encounter-->
+    <apex:pageBlock title ="{! errorBlockTitle}" rendered="{! !hasAddress}">
+    <apex:pageMessage summary="{! errorMessage}" severity="error" strength="3" />
+        <apex:pageMessages />
+    </apex:pageBlock>
+</apex:page>
