@@ -1,7 +1,7 @@
 public with sharing class AccountControllerExtensionForWeather {
     
     // my API key
-    private final String API ='09d6ea17a4b68bc6ef1d45d1d33fdc29';
+    private final String API ='i will not push this to the repo for security reasons';
     public Account account {get; set;}
     public OpenWeatherWrapper openWeatherWrapper{get; set;}
     public String description {get; set;}
